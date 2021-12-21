@@ -39,7 +39,7 @@ public class Decal : MonoBehaviour
                 {
                     
                     var decal = hit.collider.GetComponent<Decal>();
-                    Debug.Log("decal connect " + decal.ToString());
+                    //Debug.Log("decal connect " + decal.ToString());
                     if (decal == this)
                     {
                         //Debug.DrawRay(eyes, (target - eyes).normalized, Color.green, 1);
@@ -57,7 +57,7 @@ public class Decal : MonoBehaviour
 
     void Reveal()
     {
-        Debug.Log(this.name + " reveal");
+        //Debug.Log(this.name + " reveal");
         var renderer = GetComponent<Renderer>();
         renderer.enabled = true;
         seen = true;

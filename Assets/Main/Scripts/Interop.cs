@@ -15,6 +15,17 @@ public class Interop : MonoBehaviour
         inst = this;
     }
 
+    public int screenWidth()
+    {
+        return Screen.width;
+    }
+
+    public int screenHeight()
+    {
+        return Screen.height;
+    }
+
+
     public void dummy(string arg = null)
     {
 
@@ -191,6 +202,10 @@ public class Interop : MonoBehaviour
         try
         {
             Director.inst.currentScene.castController.CreateCharacter(name, new Vector2(scaleX, scaleY), revealsMap);
+            if (revealsMap)
+            {
+                Director.inst.currentScene.castController.dict[name].isVisible = true;
+            }
             if (spriteName != null && spriteName != "")
             {
                 setCharSprite(name, spriteName);
@@ -207,6 +222,16 @@ public class Interop : MonoBehaviour
     {
         Director.inst.currentScene.castController.DestroyCharacter(name);
         Debug.Log($"destroyed ${name}");
+    }
+
+    public void setCharacterVisible(string name, bool visible)
+    {
+        Director.inst.currentScene.castController.dict[name].isVisible = visible;
+    }
+
+    public void setCharacterWorldCoords(string name, int[] coords)
+    {
+        Director.inst.currentScene.castController.dict[name].worldCoordinates = new Vector3Int(coords[0], coords[1], coords[2]);
     }
 
     /**

@@ -9,6 +9,7 @@ public class Voxel : MonoBehaviour
     public VoxelController controller;
     public VoxelDefinition voxDef;
     public MeshRenderer[] quads = new MeshRenderer[5] { null, null, null, null, null };
+    public bool[] faceSeen = new bool[5] { false, false, false, false, false };
     public Material[][] mats = new Material[5][] { new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null } };
     public Material[][] highlightMats = new Material[5][] { new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null }, new Material[2] { null, null } };
     public bool[] hasHighlight = new bool[] { false, false, false, false, false };
@@ -275,6 +276,25 @@ public class Voxel : MonoBehaviour
         //}
 
         
+    }
+
+    public bool FaceIsVisible(int surfaceNo)
+    {
+        return faceSeen[surfaceNo];
+    }
+
+    public bool anyFaceSeen()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            
+            if (faceSeen[i])
+            {
+                Debug.Log(position.ToString() + " can be seen");
+                return true;
+            }
+        }
+        return false;
     }
 
 

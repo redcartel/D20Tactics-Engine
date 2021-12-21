@@ -53,6 +53,8 @@ public class ScriptEngine : MonoBehaviour
         ");
     }
 
+
+
     public void FaceClick(Vector3Int voxelPos, int face)
     {
         int x = voxelPos.x;
@@ -64,6 +66,16 @@ public class ScriptEngine : MonoBehaviour
     public void CharacterClick(string name)
     {
         engine.Execute($"window.characterClick('{name}')");
+    }
+
+    public void CharacterMove(string name)
+    {
+        engine.Execute($"window.characterMoved('{name}')");
+    }
+
+    public void CharacterSeen(string name)
+    {
+        engine.Execute($"window.characterSeen('{name}'");
     }
 
     public void ExecuteScript(string script)

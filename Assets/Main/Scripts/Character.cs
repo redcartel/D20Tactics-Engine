@@ -15,10 +15,18 @@ public class Character : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public bool resetCurrentAnimation = false;
     public bool revealsMap = false;
+    public bool isVisible = false;
+    public Vector3Int worldCoordinates;
 
     public int facingX = 0;
     public int facingZ = -1;
     public AnimationGroup animationGroup;
+
+    public bool moved = true;
+    public bool resetMoved = false;
+    Vector3 lastKnownPosition = new Vector3(1000, 1000, 1000);
+
+    public string moveCallback;
 
     public void SetSprite(Sprite sprite, bool? flip = null)
     {
@@ -33,6 +41,16 @@ public class Character : MonoBehaviour
 
         sr.sprite = sprite;
     }
+
+    public void UpdateWorldCoords()
+    {
+        Vector3 bS = Director.inst.currentScene.voxelController.voxelSize;
+        int x = (int)(this.transform.position.x / bS.x);
+        int y = (int)(this.transform.position.y / bS.y);
+        int z = (int)(this.transform.position.z / bS.z);
+        worldCoordinates = new Vector3Int(x, y, z);
+    }
+
 
     //public void AttachAnimationGroup(AnimationGroup newGroup)
     //{
@@ -117,7 +135,7 @@ public class Character : MonoBehaviour
             this.transform.localPosition = pos;
         }
 
-        
+
 
         if (!animationGroup) return;
         bool reset = false;
@@ -166,15 +184,42 @@ public class Character : MonoBehaviour
         }
         capsule.transform.localPosition = capsuleOffset;
 
+        
+
         if (resetMoved) moved = false;
         if ((lastKnownPosition - this.transform.position).magnitude > .2)
         {
             moved = true;
         }
 
-        if (!this.revealsMap)
+        if (moved)
         {
-            //spriteRenderer.enabled = false;
+            UpdateWorldCoords();
+        }
+
+        if (!revealsMap && moved)
+        {
+            CheckSeen();
+        }
+
+        if (revealsMap)
+        {
+            foreach (Character ch in Director.inst.currentScene.castController.dict.Values)
+            {
+                if (!ch.revealsMap)
+                {
+                    ch.CheckSeen();
+                }
+            }
+        }
+
+        if (!isVisible)
+        {
+            spriteRenderer.enabled = false;
+        }
+        else
+        {
+            spriteRenderer.enabled = true;
         }
     }
 
@@ -186,9 +231,45 @@ public class Character : MonoBehaviour
 
     static List<Vector3> angles;
 
-    public bool moved = true;
-    public bool resetMoved = false;
-    Vector3 lastKnownPosition = new Vector3(1000,1000,1000);
+    public void CheckSeen()
+    {
+        if (CanBeSeen())
+        {
+            isVisible = true;
+        }
+        else
+        {
+            isVisible = false;
+        }
+    }
+
+    public bool CanBeSeen()
+    {
+        Vector3Int[] offsets = new Vector3Int[]
+        {
+            new Vector3Int(0,-1,0),
+            new Vector3Int(1, 0, 0),
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(0, 0, 1),
+            new Vector3Int(0, 0, -1),
+            new Vector3Int(1, 1, 0),
+            new Vector3Int(-1, 1, 0),
+            new Vector3Int(0, 1, 1),
+            new Vector3Int(0, 1, -1),
+        };
+        foreach (Vector3Int offset in offsets)
+        {
+            Vector3Int voxPos = this.worldCoordinates + offset;
+            if (Director.inst.currentScene.voxelController.voxels.ContainsKey(voxPos)) {
+                if (Director.inst.currentScene.voxelController.voxels[voxPos].anyFaceSeen())
+
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     //public void See()
     //{

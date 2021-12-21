@@ -585,7 +585,7 @@ var GameUI = /*#__PURE__*/function () {
       if (this.firstMenu) this.firstMenu.destroy();
       this.firstMenu = new _lib_Dialog__WEBPACK_IMPORTED_MODULE_0__.default(this.state.activeCharacter.name + '\'s turn');
       this.firstMenu.setText(this.state.activeCharacter.name + '\'s turn');
-      this.firstMenu.place([1500, 500], [300, 300]);
+      this.firstMenu.place([1450, 300], [400, 400]);
       var endTurn = new _lib_Callback__WEBPACK_IMPORTED_MODULE_1__.default(function () {
         _this.firstMenu.destroy();
 
@@ -593,14 +593,14 @@ var GameUI = /*#__PURE__*/function () {
       });
 
       if (this.state.activeCharacter.turn.hasMove) {
-        this.firstMenu.addButton('Move', [16, 200], [250, 28], moveAction.callString);
+        this.firstMenu.addButton('Move', [32, 232], [400, 64], moveAction.callString);
       }
 
       if (this.state.activeCharacter.turn.hasAction) {
-        this.firstMenu.addButton('Attack', [16, 150], [250, 28], attackAction.callString);
+        this.firstMenu.addButton('Attack', [32, 132], [400, 64], attackAction.callString);
       }
 
-      this.firstMenu.addButton('End Turn', [16, 100], [250, 28], endTurn.callString);
+      this.firstMenu.addButton('End Turn', [32, 32], [400, 64], endTurn.callString);
     }
   }, {
     key: "moveSelection",
@@ -816,9 +816,9 @@ var GameUI = /*#__PURE__*/function () {
       if (this.popup) {
         if (this.popupDialog) this.popupDialog.destroy();
         this.popupDialog = new _lib_Dialog__WEBPACK_IMPORTED_MODULE_0__.default('_popup');
-        this.popupDialog.setText(this.popup, .005);
-        this.popupDialog.place(1920 / 2 - 200, 0, 400, 64);
-        _lib_Callback__WEBPACK_IMPORTED_MODULE_1__.default.delayed(2, function () {
+        this.popupDialog.setText(this.popup, .002);
+        this.popupDialog.place(32, 32, 600, 300);
+        _lib_Callback__WEBPACK_IMPORTED_MODULE_1__.default.delayed(4, function () {
           return _this4.popupDialog.destroy();
         });
         this.popup = null;
@@ -3092,8 +3092,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var setOnScreenControls = function setOnScreenControls() {
   var active = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
@@ -3109,39 +3107,6 @@ var UIManager = /*#__PURE__*/function () {
   function UIManager() {
     _classCallCheck(this, UIManager);
 
-    _defineProperty(this, "setOnScreenControls", function () {
-      var active = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
-
-      try {
-        _i.onScreenControls(active);
-      } catch (e) {
-        console.error("Error calling _i.onScreenControls with ".concat(active));
-        console.error(e);
-      }
-    });
-
-    _defineProperty(this, "registerCharacterForClicks", function (character) {
-      window._clickableCharacters[character.name] = character;
-    });
-
-    _defineProperty(this, "unregisterCharacterForClicks", function (character) {
-      window._clickableCharacters[character.name] = undefined;
-    });
-
-    _defineProperty(this, "receiveCharacterClick", function (name) {
-      if (name in window._clickableCharacters[name]) {
-        window._clickableCharacters[name].receiveClick();
-      }
-    });
-
-    _defineProperty(this, "clearCharacterClicks", function () {
-      window._clickableCharacters = {};
-    });
-
-    _defineProperty(this, "setBackButton", function (fn) {
-      window.backButton = fn;
-    });
-
     window.characterClick = this.receiveCharacterClick;
   }
 
@@ -3153,6 +3118,65 @@ var UIManager = /*#__PURE__*/function () {
       window.characterClick = function () {};
 
       window.backButton = function () {};
+    }
+  }, {
+    key: "setOnScreenControls",
+    value: function setOnScreenControls() {
+      var active = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      try {
+        _i.onScreenControls(active);
+      } catch (e) {
+        console.error("Error calling _i.onScreenControls with ".concat(active));
+        console.error(e);
+      }
+    }
+  }, {
+    key: "registerCharacterForClicks",
+    value: function registerCharacterForClicks(character) {
+      window._clickableCharacters[character.name] = character;
+    }
+  }, {
+    key: "unregisterCharacterForClicks",
+    value: function unregisterCharacterForClicks(character) {
+      window._clickableCharacters[character.name] = undefined;
+    }
+  }, {
+    key: "receiveCharacterClick",
+    value: function receiveCharacterClick(name) {
+      if (name in window._clickableCharacters[name]) {
+        window._clickableCharacters[name].receiveClick();
+      }
+    }
+  }, {
+    key: "clearCharacterClicks",
+    value: function clearCharacterClicks() {
+      window._clickableCharacters = {};
+    }
+  }, {
+    key: "setBackButton",
+    value: function setBackButton(fn) {
+      window.backButton = fn;
+    }
+  }], [{
+    key: "width",
+    get: function get() {
+      return _i.screenWidth();
+    }
+  }, {
+    key: "height",
+    get: function get() {
+      return _i.screenHeight();
+    }
+  }, {
+    key: "widthOrMax",
+    value: function widthOrMax(width) {
+      return Math.min(width, this.width);
+    }
+  }, {
+    key: "heightOrMax",
+    value: function heightOrMax(height) {
+      return Math.min(height, this.height);
     }
   }]);
 
@@ -3901,8 +3925,14 @@ window.game = (_window$game = window.game) !== null && _window$game !== void 0 ?
   (0,_lib_UIManager__WEBPACK_IMPORTED_MODULE_10__.setOnScreenControls)(false);
   window.game.scene = new _lib_Scene__WEBPACK_IMPORTED_MODULE_1__.default('mainMenu', null, true, true);
   window.game._logo = new _lib_UIImage__WEBPACK_IMPORTED_MODULE_8__.default('mainLogo', _assetLoaders__WEBPACK_IMPORTED_MODULE_3__.Sprites.logo);
+  console.log(_lib_UIManager__WEBPACK_IMPORTED_MODULE_10__.default.width + ' x ' + _lib_UIManager__WEBPACK_IMPORTED_MODULE_10__.default.height);
+  var logoWidth = 800;
+  var logoHeight = logoWidth * 4 / 10;
+  var logoBottom = _lib_UIManager__WEBPACK_IMPORTED_MODULE_10__.default.height - logoHeight;
+  var logoLeft = 0;
+  var centerLogoLeft = (1920 - logoWidth) / 2;
 
-  window.game._logo.place([(1920 - 1000) / 2, 680, 1000, 400]);
+  window.game._logo.place([centerLogoLeft, logoBottom, logoWidth, logoHeight]);
 
   window.game._dialog = new _lib_Dialog__WEBPACK_IMPORTED_MODULE_0__.default('mainMenu', 'D20 Tactics');
 
@@ -3914,9 +3944,9 @@ window.game = (_window$game = window.game) !== null && _window$game !== void 0 ?
   //window.game._dialog.addButton("Map Gen", [16, 300], [300,28], "window.game._mapGenDemo()");
 
 
-  window.game._dialog.addButton("Game Rules", [32, 350], [400, 64], "window.game._gameRules()");
+  window.game._dialog.addButton("Fight Overworld", [32, 350], [400, 64], "window.game._gameRules()");
 
-  window.game._dialog.addButton("New Map", [32, 200], [400, 64], _lib_Callback__WEBPACK_IMPORTED_MODULE_12__.default.call(function () {
+  window.game._dialog.addButton("Fight Dungeon", [32, 200], [400, 64], _lib_Callback__WEBPACK_IMPORTED_MODULE_12__.default.call(function () {
     window.game.scene = new _lib_Scene__WEBPACK_IMPORTED_MODULE_1__.default('newMap', null, true, true);
     (0,_NewMapDemo__WEBPACK_IMPORTED_MODULE_13__.default)();
   }));

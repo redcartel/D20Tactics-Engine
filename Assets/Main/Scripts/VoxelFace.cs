@@ -46,8 +46,10 @@ class VoxelFace : MonoBehaviour
                     var vox = hit.collider.GetComponent<VoxelFace>();
                     if (vox == this)
                     {
+                        Voxel voxParent = GetComponentInParent<Voxel>();
+                        voxParent.faceSeen[this.face] = true;
                         //Debug.DrawRay(eyes, (target - eyes).normalized, Color.green, 1);
-                        GetComponentInParent<Voxel>().RevealQuads();
+                        voxParent.RevealQuads();
                         seen = true;
                     }
                     else
