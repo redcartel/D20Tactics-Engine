@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// A character, also a huge friggin mess
 public class Character : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -23,10 +24,13 @@ public class Character : MonoBehaviour
     public AnimationGroup animationGroup;
 
     public bool moved = true;
-    public bool resetMoved = false;
+    //public bool resetMoved = false;
     Vector3 lastKnownPosition = new Vector3(1000, 1000, 1000);
 
     public string moveCallback;
+
+    float startTime = 0f;
+    MeshRenderer capsule = null;
 
     public void SetSprite(Sprite sprite, bool? flip = null)
     {
@@ -42,42 +46,40 @@ public class Character : MonoBehaviour
         sr.sprite = sprite;
     }
 
-    public void UpdateWorldCoords()
+    public void Update()
     {
-        Vector3 bS = Director.inst.currentScene.voxelController.voxelSize;
-        int x = (int)(this.transform.position.x / bS.x);
-        int y = (int)(this.transform.position.y / bS.y);
-        int z = (int)(this.transform.position.z / bS.z);
-        worldCoordinates = new Vector3Int(x, y, z);
+        Tick();
+        CheckMoved();
+        CheckVisible();
+        PlaceShadowCapsuleHACK();
     }
 
-
-    //public void AttachAnimationGroup(AnimationGroup newGroup)
-    //{
-    //    DetachAnimation();  
-    //    if (newAnimation != null && this.animationGroup == newGroup) newGroup.Attach(this, false);
-    //    else if (newAnimation != null) newAnimation.Attach(this);
-    //}
-
-    //public void DetachAnimation()
-    //{
-    //    if (animation) animation.Detach(this);
-    //}
-
-    // TODO: Refactor this mess
-
-    int? seeTicker;
-
-    public void Tick(float tick)
+    public void CharacterClick()
     {
-        if (spriteRenderer == null)
+        ScriptEngine.inst.CharacterClick(this.name);
+    }
+
+    public void UpdateWorldCoords()
+    {
+        Vector3Int oldWorldCoordinates = worldCoordinates;
+        Vector3 bS = Director.inst.currentScene.voxelController.voxelSize;
+        int x = (int)(this.transform.position.x / bS.x + .5);
+        int y = (int)(this.transform.position.y / bS.y + .5);
+        int z = (int)(this.transform.position.z / bS.z + .5);
+        worldCoordinates = new Vector3Int(x, y, z);
+        if (oldWorldCoordinates != worldCoordinates)
         {
-            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            if (spriteRenderer == null) return;
+            Director.inst.currentScene.castController.UpdateCharacterWorldPosition(name, worldCoordinates);
         }
+    }
+
+    public void PathAnimateTick(float tick)
+    {
         if (nextPoint)
         {
             this.animationGroup = nextPoint.animationGroup;
+
+            // if no previous waypoint is defined, create one at the character's current location
             if (!lastPoint)
             {
                 GameObject newPoint = new GameObject("get_last_point_" + name);
@@ -86,39 +88,48 @@ public class Character : MonoBehaviour
                 lastPoint.transform.position = this.transform.position;
             }
 
-            float dX = nextPoint.transform.position.x - lastPoint.transform.position.x;
-            float dZ = nextPoint.transform.position.z - lastPoint.transform.position.z;
+            Vector3 lastToNextVector = nextPoint.transform.position - lastPoint.transform.position;
 
-            if (dX > 0) facingX = 1;
-            else if (dX < 0) facingX = -1;
+            // set character facing direction based on lastToNextVector direction
+
+            if (lastToNextVector.x > 0) facingX = 1;
+            else if (lastToNextVector.x < 0) facingX = -1;
             else facingX = 0;
 
-            if (dZ > 0) facingZ = 1;
-            else if (dZ < 0) facingZ = -1;
+            if (lastToNextVector.z > 0) facingZ = 1;
+            else if (lastToNextVector.z < 0) facingZ = -1;
             else facingZ = 0;
 
-            int deltaTick = (int)(tick - lastPoint.startTick);
-            Vector3 pos = lastPoint.transform.position + (nextPoint.transform.position - lastPoint.transform.position) * ((float)deltaTick / nextPoint.ticks);
+            // calculate new character position based on number of ticks since lastPosition
 
+            float segmentTick = (float)(tick - lastPoint.startTick);
+            float segmentCompletePercentage = (float)(segmentTick / nextPoint.ticks);
+
+            if (segmentCompletePercentage > 1.0f) segmentCompletePercentage = 1.0f;
+            //Debug.Log(segmentCompletePercentage);
+
+            Vector3 newPosition = lastPoint.transform.position + lastToNextVector * segmentCompletePercentage;
+
+            // add sinMultiplier Y "bounce" to position
             if (nextPoint.sinMult != 0)
             {
-                float TotalDistance = (nextPoint.transform.position - lastPoint.transform.position).magnitude;
-                if (TotalDistance < 0.0001f) TotalDistance = 0.0001f;
-                float PosDistance = (pos - lastPoint.transform.position).magnitude;
-                float percentComplete = PosDistance / TotalDistance;
-                float radians = percentComplete * Mathf.PI;
+                float radians = segmentCompletePercentage * Mathf.PI;
                 float ySin = Mathf.Sin(radians) * nextPoint.sinMult;
-                pos = new Vector3(pos.x, pos.y + ySin, pos.z);
+                newPosition = new Vector3(newPosition.x, newPosition.y + ySin, newPosition.z);
             }
 
-            if (deltaTick >= nextPoint.ticks)
+            // if segment is complete, possibly execute script and update next & last point
+            if (segmentCompletePercentage >= 0.9999999f)
             {
-                pos = nextPoint.transform.position;
+                newPosition = nextPoint.transform.position;
                 if (nextPoint.executed == false && nextPoint.script != null && nextPoint.script.Trim() != "")
                 {
                     ScriptEngine.inst.ExecuteScript(nextPoint.script);
                 }
-                // TODO: sin wave jump
+
+                // remove last point
+                Destroy(lastPoint.gameObject);
+
                 if (nextPoint.next)
                 {
                     lastPoint = nextPoint;
@@ -126,16 +137,20 @@ public class Character : MonoBehaviour
                     nextPoint = nextPoint.next;
                     animationGroup = nextPoint.animationGroup;
                 }
+
                 else
                 {
+                    // if complete, remove the final point
+                    Destroy(nextPoint.gameObject);
                     nextPoint = null;
                     lastPoint = null;
                 }
             }
-            this.transform.localPosition = pos;
+            this.transform.position = newPosition;
         }
+    }
 
-
+    void AnimationGroupTick(float tick) {
 
         if (!animationGroup) return;
         bool reset = false;
@@ -144,22 +159,77 @@ public class Character : MonoBehaviour
             this.resetCurrentAnimation = false;
             reset = true;
         }
-        bool result = animationGroup.getAnimation(facingX, facingZ, CameraTarget.inst.angle).Animate(spriteRenderer, tick, reset);
+        animationGroup.getAnimation(facingX, facingZ, CameraTarget.inst.angle).Animate(spriteRenderer, tick, reset);
     }
 
 
-    float startTime = 0f;
-    MeshRenderer capsule = null;
-    public void Update()
+    // Handle animation and movement along path
+    public void Tick()
     {
-        if (startTime == 0) startTime = Time.time;
-        if (animationGroup || nextPoint)
+        if (spriteRenderer == null)
         {
-            float floatTick = (Time.time - startTime) * 60;
-            Tick(floatTick);
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer == null) return;
+        }
+        if (startTime == 0) startTime = Time.time;
+
+        float tick = (Time.time - startTime) * 60;
+        PathAnimateTick(tick);
+        AnimationGroupTick(tick);
+    }
+
+    // if a character has moved more than a delta, update their world position and check
+    // if they should be shown or hidden or if others should be shown or hidden based
+    // on tile reveal state
+    void CheckMoved(float moveDelta = .2f)
+    {
+        //if (resetMoved) moved = false;
+        if ((lastKnownPosition - this.transform.position).magnitude > moveDelta)
+        {
+            moved = true;
+            lastKnownPosition = this.transform.position;
         }
 
-        // TODO: This capsule thing is a dumb hack to get shadows
+        if (moved)
+        {
+            UpdateWorldCoords();
+
+            if (!revealsMap && moved)
+            {
+                CheckSeen();
+            }
+
+            if (revealsMap)
+            {
+                foreach (Character ch in Director.inst.currentScene.castController.dict.Values)
+                {
+                    if (!ch.revealsMap)
+                    {
+                        ch.CheckSeen();
+                    }
+                }
+            }
+        }
+    }
+
+    // show or hide the character based on isVisible
+    void CheckVisible()
+    {
+        if (!isVisible)
+        {
+            spriteRenderer.enabled = false;
+            if (capsule) capsule.enabled = false;
+        }
+        else
+        {
+            spriteRenderer.enabled = true;
+            if (capsule) capsule.enabled = true;
+        }
+    }
+
+    // place the hacky shadow-generating capsule object
+    void PlaceShadowCapsuleHACK()
+    {
         if (capsule == null)
         {
             capsule = GetComponentInChildren<MeshRenderer>();
@@ -183,57 +253,14 @@ public class Character : MonoBehaviour
             capsuleOffset = new Vector3(baseCapsuleOffset.x * -1, baseCapsuleOffset.y, baseCapsuleOffset.z);
         }
         capsule.transform.localPosition = capsuleOffset;
-
-        
-
-        if (resetMoved) moved = false;
-        if ((lastKnownPosition - this.transform.position).magnitude > .2)
-        {
-            moved = true;
-        }
-
-        if (moved)
-        {
-            UpdateWorldCoords();
-        }
-
-        if (!revealsMap && moved)
-        {
-            CheckSeen();
-        }
-
-        if (revealsMap)
-        {
-            foreach (Character ch in Director.inst.currentScene.castController.dict.Values)
-            {
-                if (!ch.revealsMap)
-                {
-                    ch.CheckSeen();
-                }
-            }
-        }
-
-        if (!isVisible)
-        {
-            spriteRenderer.enabled = false;
-        }
-        else
-        {
-            spriteRenderer.enabled = true;
-        }
     }
 
-    // TODO
-    public void CharacterClick()
-    {
-        ScriptEngine.inst.CharacterClick(this.name);
-    }
-
-    static List<Vector3> angles;
-
+    // Check if non-map revealing character should be visible based on proximity to
+    // revealed tiles;
     public void CheckSeen()
     {
-        if (CanBeSeen())
+        if (revealsMap) return;
+        if (NearVisibleTile())
         {
             isVisible = true;
         }
@@ -243,7 +270,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    public bool CanBeSeen()
+    public bool NearVisibleTile()
     {
         Vector3Int[] offsets = new Vector3Int[]
         {
@@ -260,7 +287,8 @@ public class Character : MonoBehaviour
         foreach (Vector3Int offset in offsets)
         {
             Vector3Int voxPos = this.worldCoordinates + offset;
-            if (Director.inst.currentScene.voxelController.voxels.ContainsKey(voxPos)) {
+            if (Director.inst.currentScene.voxelController.voxels.ContainsKey(voxPos))
+            {
                 if (Director.inst.currentScene.voxelController.voxels[voxPos].anyFaceSeen())
 
                 {
@@ -271,62 +299,5 @@ public class Character : MonoBehaviour
         return false;
     }
 
-    //public void See()
-    //{
-    //    if (lastKnownPosition == null || (this.transform.position - lastKnownPosition).magnitude > .2)
-    //    {
-    //        lastKnownPosition = this.transform.position;
-    //        var eyes = new Vector3(transform.position.x, transform.position.y + 1.25f, transform.position.z);
-    //        foreach (var posVox in Director.inst.currentScene.voxelController.unseenVoxels)
-    //        {
-    //            var pos = posVox.Key;
-    //            var vox = posVox.Value;
-    //            var direction = (vox.gameObject.transform.position - eyes).normalized;
-    //            RaycastHit hit;
-    //            bool ifhit = Physics.Raycast(eyes, direction, out hit, 15);
-    //            if (ifhit)
-    //            {
-    //                Voxel v = hit.collider.gameObject.GetComponent<Voxel>();
-    //                if (v.position == pos)
-    //                {
-    //                    v.See();
-    //                }
-    //            }
-    //        }
-    //    }
-    //    //if (angles == null)
-    //    //{
-    //    //    angles = new List<Vector3>();
-    //    //    for (var yAxis = 0; yAxis < 360; yAxis += 2)
-    //    //    {
-    //    //        for (var xAxis = -90; xAxis <= 90; xAxis += 2)
-    //    //        {
-    //    //            // TODO: this is not how spherical coordinates actually work
-    //    //            var z = Mathf.Sin(yAxis);
-    //    //            var x = Mathf.Cos(yAxis);
-    //    //            var y = Mathf.Sin(xAxis);
-    //    //            var d = (new Vector3(x, y, z)).normalized;
-    //    //            angles.Add(d);
-    //    //        }
-    //    //    }
-    //    //    Debug.Log($"{angles.Count} angles");
-    //    //}
-
-    //    //var head = new Vector3(this.transform.position.x, this.transform.position.y + 1, this.transform.position.z);
-
-    //    //foreach (var angle in angles)
-    //    //{
-    //    //    RaycastHit hit;
-    //    //    bool ifhit = Physics.Raycast(head, angle, out hit, 15);
-    //    //    if (ifhit)
-    //    //    {
-    //    //        Voxel v = hit.collider.gameObject.GetComponent<Voxel>();
-    //    //        if (v != null)
-    //    //        {
-    //    //            Debug.Log($"hit {angle}");
-    //    //            v.See();
-    //    //        }
-    //    //    }
-    //    //}
-    //}
+    
 }

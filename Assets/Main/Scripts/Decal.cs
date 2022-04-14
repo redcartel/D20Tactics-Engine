@@ -12,7 +12,7 @@ public class Decal : MonoBehaviour
 
     bool seen = false;
 
-    // Update is called once per frame
+    // See if unseen decal is seen
     void Update()
     {
         if (seen == true) return;

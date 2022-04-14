@@ -166,8 +166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb1cbc7e9d15c47449e83d0876e46bce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  texture: {fileID: 2800000, guid: a4a961e41faaddd45a46183c4d69d80e, type: 3}
-  sprite: {fileID: 0}
 --- !u!1 &155247420
 GameObject:
   m_ObjectHideFlags: 0
@@ -1207,8 +1205,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb1cbc7e9d15c47449e83d0876e46bce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  texture: {fileID: 2800000, guid: b1bf77c85bc87b44f8231605748c2b76, type: 3}
-  sprite: {fileID: 0}
 --- !u!1 &827814166
 GameObject:
   m_ObjectHideFlags: 0
@@ -2501,6 +2497,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  faceSeen: 0000000000
   hasHighlight: 0000000000
   blockDimensions: {x: 1, y: 0.5, z: 1}
   seen: 0
@@ -4453,6 +4450,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  faceSeen: 0000000000
   hasHighlight: 0000000000
   blockDimensions: {x: 1, y: 0.5, z: 1}
   seen: 0
@@ -4777,9 +4775,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'text
-
-'
+  m_text: text
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7fff0e33300534af6bd86b07ef6fbe7d, type: 2}
   m_sharedMaterial: {fileID: -7645508569019144290, guid: 7fff0e33300534af6bd86b07ef6fbe7d, type: 2}
@@ -4788,8 +4784,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4286248701
+  m_fontColor: {r: 0.9921569, g: 0.96470594, b: 0.4784314, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4806,13 +4802,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 64
-  m_fontSizeBase: 64
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -6310,7 +6306,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &4605980487838720820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6501,8 +6497,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278240511
-  m_fontColor: {r: 1, g: 0.76815236, b: 0, a: 1}
+    rgba: 4291887102
+  m_fontColor: {r: 0.99803084, g: 1, b: 0.8160377, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6683,11 +6679,13 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   resetCurrentAnimation: 0
   revealsMap: 0
+  isVisible: 0
+  worldCoordinates: {x: 0, y: 0, z: 0}
   facingX: 0
   facingZ: -1
   animationGroup: {fileID: 0}
   moved: 1
-  resetMoved: 0
+  moveCallback: 
 --- !u!4 &6754478477824266139
 Transform:
   m_ObjectHideFlags: 0

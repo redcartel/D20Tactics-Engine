@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Adds a JavaScript call to a UI button
 public class ButtonScript : MonoBehaviour
 {
     [TextArea]

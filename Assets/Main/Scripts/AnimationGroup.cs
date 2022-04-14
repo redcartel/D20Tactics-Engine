@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/**
+ * Up to 4 animations for each possible facing
+ */
 public class AnimationGroup : MonoBehaviour
 {
     public SimpleAnimation downRight;

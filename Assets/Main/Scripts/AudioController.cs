@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// What it says on the box
 public class AudioController : MonoBehaviour
 {
     public GameObject audioSourcePrefab;
 
     public Dictionary<string, AudioSource> sources = new Dictionary<string, AudioSource>();
 
-
-    string NewAudioSource(string name = null, AudioClip audio = null, bool? loop = null, Vector3? position = null)
+    // 
+    string NewAudioSource(string name, AudioClip audio = null, bool? loop = null, Vector3? position = null)
     {
-        if (name == null) name = $"__default__";
         if (sources.ContainsKey(name))
         {
             Destroy(sources[name]);
@@ -29,6 +29,7 @@ public class AudioController : MonoBehaviour
     }
 
     // TODO: Should be a coroutine
+    // TODO: Why though?
     public string Play(string name = null, string soundName = null, bool? loop = null, Vector3? position = null)
     {
         AudioSource aus;

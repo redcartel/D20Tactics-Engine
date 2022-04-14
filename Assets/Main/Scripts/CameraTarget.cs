@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Controls where the camera is positioned and from what angle
 public class CameraTarget : MonoBehaviour
 {
     public GameObject follow;

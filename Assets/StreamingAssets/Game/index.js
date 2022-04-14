@@ -3108,6 +3108,7 @@ var UIManager = /*#__PURE__*/function () {
     _classCallCheck(this, UIManager);
 
     window.characterClick = this.receiveCharacterClick;
+    window.characterMove = this.receiveCharacterMove;
   }
 
   _createClass(UIManager, [{
@@ -3137,6 +3138,16 @@ var UIManager = /*#__PURE__*/function () {
       window._clickableCharacters[character.name] = character;
     }
   }, {
+    key: "registerCharacterForMove",
+    value: function registerCharacterForMove(character) {
+      window._moveCallbackCharacters[character.name] = character;
+    }
+  }, {
+    key: "unregisterCharacterForMove",
+    value: function unregisterCharacterForMove(character) {
+      window._moveCallebackCharacters[character.name] = character;
+    }
+  }, {
     key: "unregisterCharacterForClicks",
     value: function unregisterCharacterForClicks(character) {
       window._clickableCharacters[character.name] = undefined;
@@ -3146,6 +3157,13 @@ var UIManager = /*#__PURE__*/function () {
     value: function receiveCharacterClick(name) {
       if (name in window._clickableCharacters[name]) {
         window._clickableCharacters[name].receiveClick();
+      }
+    }
+  }, {
+    key: "receiveCharacterMove",
+    value: function receiveCharacterMove(name) {
+      if (name in window._moveCallbackCharacters[name]) {
+        window._moveCallbackCharacters.moveCallback();
       }
     }
   }, {
@@ -3718,6 +3736,64 @@ window.toSpaceCoords = toSpaceCoords;
 
 /***/ }),
 
+/***/ "./src/modules/DialogDemo.js":
+/*!***********************************!*\
+  !*** ./src/modules/DialogDemo.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _lib_VoxelMap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../lib/VoxelMap */ "./src/lib/VoxelMap.js");
+/* harmony import */ var _assetLoaders__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./assetLoaders */ "./src/modules/assetLoaders.js");
+/* harmony import */ var _lib_Light__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/Light */ "./src/lib/Light.js");
+/* harmony import */ var _MapGenerators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./MapGenerators */ "./src/modules/MapGenerators.js");
+/* harmony import */ var _lib_UIManager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/UIManager */ "./src/lib/UIManager.js");
+/* harmony import */ var _gameRules_GameState__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../gameRules/GameState */ "./src/gameRules/GameState.js");
+/* harmony import */ var _gameRules_GameLoop__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../gameRules/GameLoop */ "./src/gameRules/GameLoop.js");
+/* harmony import */ var _gameRules_SceneState__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../gameRules/SceneState */ "./src/gameRules/SceneState.js");
+/* harmony import */ var _characterPrefabs__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./characterPrefabs */ "./src/modules/characterPrefabs.js");
+/* harmony import */ var _MainMenu__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./MainMenu */ "./src/modules/MainMenu.js");
+/* harmony import */ var _lib_AudioSource__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/AudioSource */ "./src/lib/AudioSource.js");
+
+
+
+
+
+
+
+
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DialogDemo = function DialogDemo() {
+  (0,_lib_UIManager__WEBPACK_IMPORTED_MODULE_4__.setOnScreenControls)(true);
+  window.game._map = (0,_MapGenerators__WEBPACK_IMPORTED_MODULE_3__.fourRooms)(); //standardLights(window.game._map);
+
+  window.game._map.render();
+
+  var gState = new _gameRules_GameState__WEBPACK_IMPORTED_MODULE_5__.default();
+  var gLoop = new _gameRules_GameLoop__WEBPACK_IMPORTED_MODULE_6__.default(gState);
+  var scene = new _gameRules_SceneState__WEBPACK_IMPORTED_MODULE_7__.default();
+  window._music = new _lib_AudioSource__WEBPACK_IMPORTED_MODULE_10__.default('window._music');
+
+  window._music.playSound(_assetLoaders__WEBPACK_IMPORTED_MODULE_1__.Sounds.necrophage);
+
+  scene.addCharacterPrefab(_characterPrefabs__WEBPACK_IMPORTED_MODULE_8__.characterPrefabs.cleric, 'Sal', [1, 0, 1]); //scene.addCharacterPrefab(characterPrefabs.rogue, 'Sam', [18, 0, 18], null, false);
+
+  scene.map = window.game._map;
+  gState.loadScene(scene);
+  gLoop.go();
+
+  window.backButton = function () {
+    (0,_MainMenu__WEBPACK_IMPORTED_MODULE_9__.default)();
+  };
+});
+
+/***/ }),
+
 /***/ "./src/modules/DistanceDemo.js":
 /*!*************************************!*\
   !*** ./src/modules/DistanceDemo.js ***!
@@ -3902,7 +3978,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _SpriteAnimation__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./SpriteAnimation */ "./src/modules/SpriteAnimation.js");
 /* harmony import */ var _lib_Callback__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/Callback */ "./src/lib/Callback.js");
 /* harmony import */ var _NewMapDemo__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./NewMapDemo */ "./src/modules/NewMapDemo.js");
+/* harmony import */ var _DialogDemo__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./DialogDemo */ "./src/modules/DialogDemo.js");
 var _window$game;
+
 
 
 
@@ -3949,6 +4027,11 @@ window.game = (_window$game = window.game) !== null && _window$game !== void 0 ?
   window.game._dialog.addButton("Fight Dungeon", [32, 200], [400, 64], _lib_Callback__WEBPACK_IMPORTED_MODULE_12__.default.call(function () {
     window.game.scene = new _lib_Scene__WEBPACK_IMPORTED_MODULE_1__.default('newMap', null, true, true);
     (0,_NewMapDemo__WEBPACK_IMPORTED_MODULE_13__.default)();
+  }));
+
+  window.game._dialog.addButton("Dialog Test", [32, 50], [400, 64], _lib_Callback__WEBPACK_IMPORTED_MODULE_12__.default.call(function () {
+    window.game.scene = new _lib_Scene__WEBPACK_IMPORTED_MODULE_1__.default('dialogTest', null, true, true);
+    (0,_DialogDemo__WEBPACK_IMPORTED_MODULE_14__.default)();
   }));
 });
 

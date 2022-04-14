@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using UnityEngine;
 
+// repository of visual and audio elements
 public class AssetLibrary : MonoBehaviour
 {
     public static AssetLibrary inst;

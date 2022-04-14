@@ -397,23 +397,12 @@ public class Interop : MonoBehaviour
         try
         {
             if (name == null) name = "__default__";
-            if (portrait == null)
-            {
-                Director.inst.currentScene.dialogController.CreateDialog(name, text);
-            }
-            else if (rightSide == false)
-            {
-                Director.inst.currentScene.dialogController.CreatePortraitDialog(name, text, null/*TextureLibrary.inst.dict[portrait]*/);
-            }
-            else
-            {
-                Director.inst.currentScene.dialogController.CreatePortraitDialogRight(name, text, null/*TextureLibrary.inst.dict[portrait]*/);
-            }
+            Director.inst.currentScene.dialogController.CreateDialog(name, text);
         }
         catch (Exception e)
         {
             Debug.LogError("Error in createDialog:" + e.Message);
-            Debug.Log($"{name} {text} {portrait} {rightSide}");
+            Debug.Log($"{name} {text}");
         }
     }
 

@@ -3,11 +3,16 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
+// Tracks all the Characters and their paths
 public class CastController : MonoBehaviour
 {
+    static Vector3Int OFFMAP = new Vector3Int(-1000, -1000, -1000);
 
     public Dictionary<string, Character> dict = new Dictionary<string, Character>();
     public Dictionary<Vector3Int, List<Character>> positionDict = new Dictionary<Vector3Int, List<Character>>();
+    public Dictionary<Character, Vector3Int> reversePositionDict = new Dictionary<Character, Vector3Int>();
     public Dictionary<string, WayPoint> pathDict = new Dictionary<string, WayPoint>();
     public GameObject characterPrefab;
 
@@ -23,38 +28,44 @@ public class CastController : MonoBehaviour
         
     }
 
+    // pulls a character's position from the position dictionary
     public Vector3Int GetPosition(string name)
     {
         Character c = dict[name];
-        foreach (Vector3Int pos in positionDict.Keys) {
-            if (positionDict[pos].Contains(c))
-            {
-                return pos;
-            }
+        if (reversePositionDict.ContainsKey(c))
+        {
+            return reversePositionDict[c];
         }
-        return new Vector3Int(-1000, -1000, -1000);
+        return OFFMAP;
     }
 
     public void DestroyCharacter(string name)
     {
         Character destroyme = dict[name];
-        Vector3Int position = GetPosition(name);
-        dict.Remove(name);
         Vector3Int pos = GetPosition(name);
-        if (pos.x > -1000 && pos.y > -1000 && pos.z > -1000)
+        if (pos.x > -999 && pos.y > -999 && pos.z > -999)
         {
             positionDict[pos].Remove(destroyme);
             if (positionDict[pos].Count == 0) positionDict.Remove(pos);
+            reversePositionDict.Remove(destroyme);
         }
         destroyme.gameObject.SetActive(false);
         Destroy(destroyme.gameObject);
+        dict.Remove(name);
     }
 
-    public void PositionCharacterOnMap(string name, Vector3Int position, Vector3 offset)
+    public void UpdateCharacterWorldPosition(string name, Vector3Int position)
     {
         Character c = dict[name];
-        RemoveFromMap(name);
-        c.gameObject.SetActive(true);
+        Vector3Int pos = GetPosition(name);
+        if (pos.x > -1000 && pos.y > -1000 && pos.z > -1000)
+        {
+            positionDict[pos].Remove(c);
+            if (positionDict[pos].Count == 0)
+            {
+                positionDict.Remove(pos);
+            }
+        }
         if (positionDict.ContainsKey(position))
         {
             positionDict[position].Add(c);
@@ -64,10 +75,20 @@ public class CastController : MonoBehaviour
             positionDict[position] = new List<Character>();
             positionDict[position].Add(c);
         }
-        Vector3 bS = Director.inst.currentScene.voxelController.voxelSize;
-        c.gameObject.transform.position = new Vector3(position.x * bS.x + offset.x, position.y * bS.y + offset.y, position.z * bS.z + offset.z);
+        reversePositionDict[c] = position;
     }
 
+    public void PositionCharacterOnMap(string name, Vector3Int position, Vector3? offset)
+    {
+        Vector3 _offset = offset ?? new Vector3(0, 0, 0);
+        Character c = dict[name];
+        c.gameObject.SetActive(true);
+        UpdateCharacterWorldPosition(name, position);
+        Vector3 bS = Director.inst.currentScene.voxelController.voxelSize;
+        c.gameObject.transform.position = new Vector3(position.x * bS.x + _offset.x, position.y * bS.y + _offset.y, position.z * bS.z + _offset.z);
+    }
+
+    // 0 = up (n/a), 1 = z-positive, 2 = x-positive, 3 = z-negative, 4 = x-negative
     public void setCharacterFacing(string name, int facing)
     {
         Character c = dict[name];
@@ -92,34 +113,31 @@ public class CastController : MonoBehaviour
         }
         else if(facing == 4)
         {
-            c.facingX = 1;
+            c.facingX = -1;
             c.facingZ = 0;
         }
     }
 
     public void RemoveFromMap(string name)
     {
-        Character c = dict[name];
-        Vector3Int pos = GetPosition(name);
-        dict[name].gameObject.SetActive(false);
-        if (pos.x > -1000 && pos.y > -1000 && pos.z > -1000)
+        UpdateCharacterWorldPosition(name, OFFMAP);
+
+    }
+
+    // TODO: is this sufficient?
+    public void ClearMap()
+    {
+        foreach (KeyValuePair<String, Character> pair in dict)
         {
-            positionDict[pos].Remove(c);
-            if (positionDict[pos].Count == 0)
-            {
-                positionDict.Remove(pos);
-            }
+            RemoveFromMap(pair.Key);
+            pair.Value.gameObject.SetActive(false);
         }
     }
 
-    public void ClearMap()
+    // TODO: incorporate scale
+    public void CreateCharacter(string name, Vector2? scale = null, bool revealsMap = false)
     {
-        positionDict.Clear();
-        dict.Clear();
-    }
-
-    public void CreateCharacter(string name, Vector2 scale, bool revealsMap)
-    {
+        Vector2 _scale = scale ?? Vector2.one;
         try
         {
             //Debug.Log(characterPrefab);
@@ -150,15 +168,16 @@ public class CastController : MonoBehaviour
         dict[name].SetSprite(sprite);
     }
 
+    // Progress animation by a tick
     public void Tick(long tick)
     {
-        foreach (KeyValuePair<string, Character> pair in dict)
-        {
-            pair.Value.Tick(tick);
-        }
+        //foreach (KeyValuePair<string, Character> pair in dict)
+        //{
+        //    pair.Value.Tick(tick);
+        //}
     }
 
-    public void SetActive(bool value)
+    public void SetAllActive(bool value)
     {
         foreach (KeyValuePair<string, Character> go in dict)
         {
@@ -166,27 +185,23 @@ public class CastController : MonoBehaviour
         }
     }
 
-    public void SetPosition(string name, Vector3Int position, Vector3? offset = null)
-    {
-        
-
-    }
-
-    public void DestroyPath(string name = null)
-    {
-        if (name == null) name = "__default__";
-        if (!pathDict.ContainsKey("path_head_" + name)) return;
-        WayPoint wp = pathDict[name];
-        string _name = wp.name;
-        while (wp != null)
-        {
-            WayPoint next = wp.next;
-            Destroy(wp);
-            pathDict.Remove(_name);
-            _name = next.name;
-            wp = next;
-        }
-    } 
+    ////Remove a named path
+    //// TODO / FIXME: what is going on with "path_head_"?
+    //public void DestroyPath(string name = null)
+    //{
+    //    if (name == null) name = "__default__";
+    //    if (!pathDict.ContainsKey("path_head_" + name)) return;
+    //    WayPoint wp = pathDict[name];
+    //    string _name = wp.name;
+    //    while (wp != null)
+    //    {
+    //        WayPoint next = wp.next;
+    //        Destroy(wp);
+    //        pathDict.Remove(_name);
+    //        _name = next.name;
+    //        wp = next;
+    //    }
+    //}
 
     public void CreatePathHead(string name = null)
     {
@@ -195,7 +210,6 @@ public class CastController : MonoBehaviour
         {
             DeletePath(name);
         }
-        DestroyPath(name);
         GameObject newObj = new GameObject(name);
         newObj.transform.SetParent(this.transform);
         WayPoint wp = newObj.AddComponent<WayPoint>();
@@ -223,9 +237,9 @@ public class CastController : MonoBehaviour
             wp.executed = true;
         }
         if (ticks != null) wp.ticks = (int)ticks;
-        else ticks = 50;
+        else wp.ticks = 50;
         if (sinMult != null) wp.sinMult = (float)sinMult;
-        else sinMult = 0.0f;
+        else wp.sinMult = 0.0f;
         head.tailFromHead.next = wp;
         head.tailFromHead = wp;
     }

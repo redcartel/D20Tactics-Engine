@@ -8,7 +8,6 @@ public class Dialog : MonoBehaviour
 {
     public TMP_Text text;
     public RectTransform rt;
-    public Image portrait;
     // Start is called before the first frame update
     void Start()
     {
@@ -34,14 +33,6 @@ public class Dialog : MonoBehaviour
     public void SetText(string dialogText)
     {
         text.text = dialogText;
-    }
-
-    public void SetPortrait(Texture sprite)
-    {
-        if (portrait != null)
-        {
-            portrait.image = sprite;
-        }
     }
 
     public void SpellOut(string message, float letterPause, bool clear = true)

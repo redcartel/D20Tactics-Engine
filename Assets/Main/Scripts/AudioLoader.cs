@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Loads an audio clip into the AssetLibrary
 public class AudioLoader : MonoBehaviour
 {
-    // Start is called before the first frame update
     public AudioImporter importer;
     AudioClip audioClip;
 

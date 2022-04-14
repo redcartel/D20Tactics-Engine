@@ -8,8 +8,6 @@ public class DialogController : MonoBehaviour
 {
     [SerializeField]
     public GameObject dialogPrefab;
-    public GameObject portraitDialogPrefab;
-    public GameObject portraitDialogPrefabRight;
     public GameObject buttonPrefab;
     public GameObject panelPrefab;
     public GameObject imagePrefab;
@@ -57,34 +55,6 @@ public class DialogController : MonoBehaviour
         dialog.SetActive(true);
         dialog.transform.SetParent(canvas.transform);
         Dialog di = dialog.GetComponent<Dialog>();
-        dict[name] = di;
-        return di;
-    }
-
-    public Dialog CreatePortraitDialog(string name = null, string message = null, Texture portrait = null)
-    {
-        if (name == null) name = "__default__";
-        DestroyDialog(name);
-        if (message == null) message = "";
-        GameObject dialog = Instantiate(portraitDialogPrefab);
-        dialog.SetActive(true);
-        dialog.transform.SetParent(canvas.transform);
-        Dialog di = dialog.GetComponent<Dialog>();
-        // if (portrait != null) di.SetPortrait(portrait);
-        dict[name] = di;
-        return di;
-    }
-
-    public Dialog CreatePortraitDialogRight(string name = null, string message = null, Texture portrait = null)
-    {
-        if (name == null) name = "__default__";
-        DestroyDialog(name);
-        if (message == null) message = "";
-        GameObject dialog = Instantiate(portraitDialogPrefabRight);
-        dialog.SetActive(true);
-        dialog.transform.SetParent(canvas.transform);
-        Dialog di = dialog.GetComponent<Dialog>();
-        if (portrait != null) di.SetPortrait(portrait);
         dict[name] = di;
         return di;
     }
